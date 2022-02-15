@@ -1,7 +1,6 @@
 import os
 import shutil
-import fileinput
-from pathlib import Path
+import simfile
 import tkinter as tk
 from tkinter import filedialog
 
@@ -45,42 +44,15 @@ def update_offset(_path, _offset):
             smPath = os.path.join(dirpath, f)
             FileExtension = os.path.splitext(smPath)[1]
             if FileExtension == '.sm':
-
-                replaced_content = ''
-                # read file
-                smFile = open(smPath, 'r+', encoding='utf-8')
-                for line in smFile:
-                    newline = line.strip()
-
-                    if '#TITLE:' in line:
-                        smTitle = line[7:-2]
-                    if '#OFFSET:' in line:
-                        smOffset_old = round(float(line[8:-2]),3)
-                        smOffset_new = round(smOffset_old + _offset,3)
-                        newline = '#OFFSET:' + str(smOffset_new) + ';'
-
-                    if '#SAMPLESTART:' in line:
-                        smSamplestart_old = round(float(line[13:-2]),3)
-                        smSamplestart_new = round(smSamplestart_old + _offset,3)
-                        newline = '#SAMPLESTART:' + str(smSamplestart_new) + ';'
-
-                    replaced_content = replaced_content + newline + '\n'
-
-                output = StepFile(smPath, smTitle, smOffset_old, smOffset_new, smSamplestart_old, smSamplestart_new)
-                StepFiles.append(output)
-
-                smFile.close()
-
-                # write content to file
-                write_file = open(smPath, 'w')
-                write_file.write(replaced_content)
-                write_file.close()
-
-                # loop through array and print stepfile objects
-                for x in StepFiles:
-                    printoutput = x.title + ' | ' + str(x.offset_old) + ' => ' + str(x.offset_new) + "\n"
-                    printoutput = printoutput + str(x.sample_old) + ' => ' + str(x.sample_new)
-                    print(printoutput)
+                print(smPath)
+                sim = simfile.open(smPath)
+                print(sim.offset)
+                oldoffset = float(sim.offset)
+                oldsample = float(sim.samplestart)
+                sim.offset = str(oldoffset + input_offset)
+                sim.samplestart = str(oldsample + input_offset)
+                with open(smPath, 'w', encoding='utf-8') as outfile:
+                    sim.serialize(outfile)
 
 
 # --- MAIN PROGRAM ---
